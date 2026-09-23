@@ -1,0 +1,21 @@
+# Deterministic seeds for stochastic components
+# Required for reproducible runs per master prompt
+
+global_seed: 42
+
+algorithms:
+  genetic_algorithm:
+    seed: 101
+  ant_colony_optimization:
+    seed: 202
+  particle_swarm_optimization:
+    seed: 303
+  nsga_ii:
+    seed: 404
+
+models:
+  deep_ensemble:
+    # 5 independent instances for uncertainty estimation
+    seeds: [10, 20, 30, 40, 50]
+  ml_residual_xgboost:
+    seed: 777

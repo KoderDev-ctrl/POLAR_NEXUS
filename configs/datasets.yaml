@@ -1,0 +1,50 @@
+datasets:
+  nsidc_sea_ice:
+    name: "Sea Ice CDR (G02202)"
+    source: "NSIDC"
+    access_method: "HTTPS/THREDDS"
+    spatial_res_km: 25
+    temporal_res: "Daily"
+    variables:
+      - "sea_ice_concentration"
+  copernicus_marine:
+    name: "Copernicus Marine (CMEMS)"
+    source: "Copernicus Marine Service"
+    access_method: "API (copernicusmarine)"
+    spatial_res_deg: 0.1
+    temporal_res: "Daily"
+    variables:
+      - "currents_u"
+      - "currents_v"
+      - "sst"
+      - "ssh" 
+      - "sea_ice_conc"
+      - "sea_ice_thickness" # Note: Low-confidence per spec
+      - "sea_ice_velocity"
+  era5:
+    name: "ERA5"
+    source: "ECMWF/CDS"
+    access_method: "CDS API"
+    spatial_res_deg: 0.25
+    temporal_res: "Hourly"
+    variables:
+      - "wind_u"
+      - "wind_v"
+      - "waves"
+      - "pressure"
+  iceberg_db:
+    name: "Circum-Antarctic Iceberg DB"
+    source: "BYU/Scripps"
+    access_method: "Download"
+    temporal_res: "Weekly"
+    variables:
+      - "position"
+      - "size"
+      - "time"
+  gebco:
+    name: "GEBCO Bathymetry"
+    source: "GEBCO"
+    access_method: "Download"
+    spatial_res_arcsec: 15
+    variables:
+      - "depth"
