@@ -7,6 +7,38 @@ class StaleTimestampError(ValueError):
 class InvalidCoordinateError(ValueError):
     pass
 
+def validate_vessel_profile(payload: Dict[str, Any]) -> bool:
+    """
+    Validates a vessel profile schema (Item 19).
+    """
+    required_fields = ["voyage_priority", "turning_radius", "draft", "depth_clearance", "max_ice_concentration", "max_acceptable_risk"]
+    for field in required_fields:
+        if field not in payload:
+            raise ValueError(f"Missing required field: {field}")
+
+    # Validate priority
+    valid_priorities = {"time_critical", "safety_priority", "fuel_economy", "balanced"}
+    if payload["voyage_priority"] not in valid_priorities:
+        raise ValueError(f"Invalid voyage_priority. Must be one of {valid_priorities}")
+
+    # Validate numeric types and ranges
+    for field in ["turning_radius", "draft", "depth_clearance", "max_ice_concentration", "max_acceptable_risk"]:
+        if not isinstance(payload[field], (int, float)):
+            raise ValueError(f"Field {field} must be numeric")
+
+    if payload["turning_radius"] < 0:
+        raise ValueError("turning_radius must be >= 0")
+    if payload["draft"] <= 0:
+        raise ValueError("draft must be > 0")
+    if payload["depth_clearance"] < 0:
+        raise ValueError("depth_clearance must be >= 0")
+    if not (0.0 <= payload["max_ice_concentration"] <= 1.0):
+        raise ValueError("max_ice_concentration must be between 0 and 1")
+    if payload["max_acceptable_risk"] < 0:
+        raise ValueError("max_acceptable_risk must be >= 0")
+
+    return True
+
 def validate_position_update(payload: Dict[str, Any]) -> bool:
     """
     Validates a raw position update payload.
