@@ -1,20 +1,23 @@
 from typing import Dict, Any, List, Optional
 from polar_nexus.feasibility.gate import HardFeasibilityGate
+from polar_nexus.routex16.cost_layer import CandidateRoute
+from polar_nexus.routing.grid import GridSpec
 
 class AdaptiveNavigationLoop:
     """
     Handles Category Locking and Risk-Triggered Adaptive Updates during active navigation.
     (Items 17 & 18)
     """
-    def __init__(self, engines: Dict[str, Any], feasibility_gate: HardFeasibilityGate):
+    def __init__(self, engines: Dict[str, Any], feasibility_gate: HardFeasibilityGate, config: Dict[str, Any]):
         # engines = {'TIME': time_engine, 'FUEL': fuel_engine, ...}
         self.engines = engines
         self.feasibility_gate = feasibility_gate
+        self.config = config
         self.locked_category = None
-        self.active_route = None
+        self.active_route: Optional[CandidateRoute] = None
         self.vessel_profile = None
 
-    def lock_category(self, category: str, initial_route: Dict[str, Any], vessel_profile: Dict[str, Any]):
+    def lock_category(self, category: str, initial_route: CandidateRoute, vessel_profile: Dict[str, Any]):
         """
         Locks the navigation loop to a specific category (e.g. 'TIME_RISK').
         """
@@ -24,36 +27,31 @@ class AdaptiveNavigationLoop:
         self.active_route = initial_route
         self.vessel_profile = vessel_profile
 
-    def trigger_update(self, current_pos: tuple, new_env_data: Dict[str, Any], risk_delta: float, risk_threshold: float = 10.0) -> Dict[str, Any]:
+    def trigger_update(self, current_pos: tuple, new_env_data: Dict[str, Any], refreshed_risk: float) -> Dict[str, Any]:
         """
-        Evaluates the update trigger (e.g., Risk Delta).
+        Evaluates the update trigger (Risk Delta).
         If triggered, re-runs ONLY the locked engine.
         Returns a dictionary with status and updated routes if applicable.
         """
         if not self.locked_category:
             return {'status': 'ERROR', 'message': 'No category locked.'}
+            
+        previous_risk = self.active_route.environmental_risk + self.active_route.metadata.get("route_risk_score", 0.0)
+        risk_delta = refreshed_risk - previous_risk
+        
+        # Uncalibrated policy parameter threshold from config
+        risk_threshold = self.config.get('adaptive_risk_delta_threshold', 10.0)
 
-        # Trigger logic: Only replan if risk increases significantly or periodically (simulated here via delta)
         if risk_delta < risk_threshold:
-            return {'status': 'CONTINUE', 'route': self.active_route, 'message': 'Risk delta below threshold. Continuing.'}
+            return {'status': 'ADAPTIVE_CONTINUE', 'route': self.active_route, 'message': 'Risk delta below threshold. Continuing.', 'risk_delta': risk_delta, 'threshold': risk_threshold}
 
         # Triggered! Run ONLY the locked engine
         engine = self.engines[self.locked_category]
-        dest = self.active_route['waypoints'][-1] if self.active_route and 'waypoints' in self.active_route else (0,0)
+        dest = self.active_route.geometry[-1][:2]
         
-        candidates = engine.generate_candidates(current_pos, dest, new_env_data.get('ice_grid', None))
+        candidates = engine.generate_candidates(current_pos, dest, new_env_data.get("ice_conc", None))
         
-        # Convert raw paths to standard candidate dict format
-        candidate_dicts = []
-        for i, path in enumerate(candidates):
-            candidate_dicts.append({
-                'id': f'adaptive_{i}',
-                'waypoints': path,
-                'engine': self.locked_category
-            })
-
-        # Hard Feasibility Check on new candidates
-        feasible_routes = self.feasibility_gate.filter_feasible_routes(candidate_dicts, self.vessel_profile, new_env_data)
+        feasible_routes = self.feasibility_gate.filter_feasible_routes(candidates, self.vessel_profile, new_env_data)
 
         if not feasible_routes:
             return {
@@ -62,14 +60,15 @@ class AdaptiveNavigationLoop:
                 'message': 'Blocking conditions encountered. No feasible route available.'
             }
 
-        # Compare with active route
-        # If active route is still feasible (simulated by checking if it's in the set, or just taking the best new one)
-        # For simplicity in this architectural implementation, we just select the first feasible new one as a "REROUTE"
+        # Simple mock scoring logic: select the best according to engine criteria
+        # Assuming engines output sorted or we just pick [0]
         new_route = feasible_routes[0]
         self.active_route = new_route
         
         return {
-            'status': 'REROUTE',
+            'status': 'ADAPTIVE_REROUTE',
             'route': new_route,
-            'message': 'Rerouted due to risk trigger.'
+            'message': 'Rerouted due to risk trigger.',
+            'risk_delta': risk_delta,
+            'threshold': risk_threshold
         }

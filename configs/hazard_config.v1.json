@@ -1,0 +1,26 @@
+{
+  "version": "hazard-cfg-1.0.0",
+  "mode_default": "operational",
+  "params": {
+    "horizon_h": 24.0,
+    "r0_km": 1.0,
+    "r24_km": 6.84,
+    "v90_km_day": 12.76,
+    "max_radius_km": 60.0,
+    "collinear_tol": 0.001,
+    "d4_max_age_h": 48.0,
+    "d4_max_step_km": 100.0,
+    "d4_min_fixes": 3,
+    "ingest_max_lag_h": 24.0,
+    "disagreement_medium_ratio": 1.0,
+    "disagreement_high_ratio": 3.0,
+    "clearance_medium_factor": 2.0
+  },
+  "provenance": {
+    "r24_km": "D4 2020-2025, persistence(median of last 3 daily steps) 24h error, icebergs moving >0.5 km/day, P90, n=40365 (P50 1.289, P95 10.434). All-berg P90=3.95. NOT Model 6 P90 (1.825): that was measured on linearly-interpolated hourly data.",
+    "v90_km_day": "D4 daily step P90 for moving icebergs (12.76 km/day)",
+    "r0_km": "operator-set position-fix uncertainty; uncalibrated",
+    "d4_max_age_h": "policy: >48h old fix cannot support a 24h hazard",
+    "others": "engineering policy; uncalibrated"
+  }
+}

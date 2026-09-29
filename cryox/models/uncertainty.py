@@ -32,16 +32,17 @@ class DeepEnsembleWrapper:
             
         self.models = []
         for seed in self.seeds:
-            # In a real PyTorch model, we would set torch.manual_seed(seed) here.
-            # For the stub, we will just pass it to the model if it accepts it, or just rely on global seeded state
+            # Genuine PyTorch/NumPy seeded instantiation
+            import torch
+            torch.manual_seed(seed)
+            np.random.seed(seed)
+            
             kwargs = dict(model_kwargs)
             kwargs['seed'] = seed
             try:
                 model_instance = model_class(**kwargs)
             except TypeError:
-                # If the stub model doesn't accept 'seed', just instantiate without it
-                # and manually seed numpy for the simulation
-                np.random.seed(seed)
+                # If the model doesn't accept 'seed' explicitly in constructor
                 model_instance = model_class(**model_kwargs)
                 
             self.models.append(model_instance)

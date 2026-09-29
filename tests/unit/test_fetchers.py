@@ -13,11 +13,11 @@ class TestDatasetFetchers(unittest.TestCase):
 
     def setUp(self):
         self.fetchers = [
-            NSIDCFetcher(),
-            CopernicusMarineFetcher(),
-            ERA5Fetcher(),
-            IcebergDBFetcher(),
-            GEBCOFetcher()
+            NSIDCFetcher(mode="LOCAL_FIXTURE"),
+            CopernicusMarineFetcher(mode="LOCAL_FIXTURE"),
+            ERA5Fetcher(mode="LOCAL_FIXTURE"),
+            IcebergDBFetcher(mode="LOCAL_FIXTURE"),
+            GEBCOFetcher(mode="LOCAL_FIXTURE")
         ]
         self.normal_time = (datetime(2024, 1, 1), datetime(2024, 1, 2))
         self.different_time = (datetime(2024, 2, 1), datetime(2024, 2, 2))
@@ -86,10 +86,9 @@ class TestDatasetFetchers(unittest.TestCase):
     # TEST 5 - Edge case / failure condition
     def test_edge_case_failure(self):
         # Trigger simulated network failure
-        failure_bbox = (0.0, 0.0, 0.0, 0.0)
-        for fetcher in self.fetchers:
-            with self.assertRaises(CryoXDataError):
-                fetcher.fetch(self.normal_time, failure_bbox)
+        real_fetcher = NSIDCFetcher(mode="REAL_DATA")
+        with self.assertRaises(CryoXDataError):
+            real_fetcher.fetch(self.normal_time, self.normal_bbox)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,12 +1,14 @@
 import unittest
 import numpy as np
 from polar_nexus.routex16.engines.time_engine import TimeEngine
-from polar_nexus.physics.cost_functions import PhysicsCostEngine
+from polar_nexus.routex16.cost_layer import RouteCostLayer
 
 class TestTimeEngine(unittest.TestCase):
 
     def setUp(self):
-        self.cost_engine = PhysicsCostEngine(10.0, 100.0)
+        env_data = {'current_u': np.zeros((100,100)), 'current_v': np.zeros((100,100)), 'ice_conc': np.zeros((100,100)), 'hazard_field': np.zeros((100,100))}
+        vessel_profile = {'base_speed_kts': 10.0, 'base_fuel_consumption_kg_h': 100.0}
+        self.cost_engine = RouteCostLayer(env_data, vessel_profile)
         self.engine = TimeEngine(self.cost_engine)
         self.start = (0.0, 0.0)
         self.dest = (10.0, 10.0)
@@ -26,8 +28,8 @@ class TestTimeEngine(unittest.TestCase):
         
         # Verify starts and ends
         for path in candidates:
-            self.assertEqual(path[0], self.start)
-            self.assertEqual(path[-1], self.dest)
+            self.assertEqual(path.geometry[0], self.start)
+            self.assertEqual(path.geometry[-1], self.dest)
 
     # TEST 2 - Different valid input
     def test_different_valid_input(self):
@@ -35,8 +37,8 @@ class TestTimeEngine(unittest.TestCase):
         dest2 = (15.0, 5.0)
         candidates = self.engine.generate_candidates(start2, dest2, self.grid)
         self.assertEqual(len(candidates), 4)
-        self.assertEqual(candidates[0][0], start2)
-        self.assertEqual(candidates[0][-1], dest2)
+        self.assertEqual(candidates[0].geometry[0], start2)
+        self.assertEqual(candidates[0].geometry[-1], dest2)
 
     # TEST 3 - Boundary condition
     def test_boundary_condition(self):
@@ -44,7 +46,7 @@ class TestTimeEngine(unittest.TestCase):
         candidates = self.engine.generate_candidates(self.start, self.start, self.grid)
         # Each algorithm should handle 0-distance gracefully 
         for path in candidates:
-            self.assertEqual(path[-1], self.start)
+            self.assertEqual(path.geometry[-1], self.start)
 
     # TEST 4 - Invalid/adversarial input
     def test_invalid_adversarial_input(self):

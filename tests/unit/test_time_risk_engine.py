@@ -1,12 +1,14 @@
 import unittest
 import numpy as np
 from polar_nexus.routex16.engines.time_risk_engine import TimeRiskEngine
-from polar_nexus.physics.cost_functions import PhysicsCostEngine
+from polar_nexus.routex16.cost_layer import RouteCostLayer
 
 class TestTimeRiskEngine(unittest.TestCase):
 
     def setUp(self):
-        self.cost_engine = PhysicsCostEngine(10.0, 100.0)
+        env_data = {'current_u': np.zeros((100,100)), 'current_v': np.zeros((100,100)), 'ice_conc': np.zeros((100,100)), 'hazard_field': np.zeros((100,100))}
+        vessel_profile = {'base_speed_kts': 10.0, 'base_fuel_consumption_kg_h': 100.0}
+        self.cost_engine = RouteCostLayer(env_data, vessel_profile)
         self.engine = TimeRiskEngine(self.cost_engine)
         self.start = (0.0, 0.0)
         self.dest = (10.0, 10.0)
@@ -24,8 +26,8 @@ class TestTimeRiskEngine(unittest.TestCase):
                                     f"Algorithms {i} and {j} produced identical paths! Architecture violation.")
         
         for path in candidates:
-            self.assertEqual(path[0], self.start)
-            self.assertEqual(path[-1], self.dest)
+            self.assertEqual(path.geometry[0], self.start)
+            self.assertEqual(path.geometry[-1], self.dest)
 
     # TEST 2 - Different valid input
     def test_different_valid_input(self):
@@ -39,11 +41,13 @@ class TestTimeRiskEngine(unittest.TestCase):
         # Start equals destination
         candidates = self.engine.generate_candidates(self.start, self.start, self.grid)
         for path in candidates:
-            self.assertEqual(path[-1], self.start)
+            self.assertEqual(path.geometry[-1], self.start)
 
     # TEST 4 - Invalid/adversarial input
     def test_invalid_adversarial_input(self):
+        print("Starting test_invalid_adversarial_input")
         candidates = self.engine.generate_candidates((-9999.0, -9999.0), (9999.0, 9999.0), self.grid)
+        print("Finished test_invalid_adversarial_input")
         self.assertEqual(len(candidates), 4)
 
     # TEST 5 - Edge case / failure condition

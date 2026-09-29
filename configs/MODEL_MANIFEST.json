@@ -1,0 +1,55 @@
+{
+ "files": {
+  "5_dataset_model/V6_1_clean_final/V6_1_clean_results.csv": "138f271cc7e708ba30e554ac5b16bbaabc28ebe9d8518f3d001aecaa15533bc0",
+  "5_dataset_model/V6_1_clean_final/V6_1_error_by_quality.csv": "ce1eb29cbd0df6e0df49fd584b4186d07e7219456a86951ef6cd2a5d128e95e0",
+  "5_dataset_model/V6_1_clean_final/V6_1_final_model.pkl": "7b6287e91c2e7abc680176e21f7f99cf2887064fb57658dbcb78f74bcc536b46",
+  "5_dataset_model/V6_1_clean_final/V6_1_final_model_metadata.json": "d85c153b5e64e81924d5fbc7f8100aba2e9150412a6917a35194c3055820dd31",
+  "5_dataset_model/V6_1_clean_final/V6_1_predictions.csv": "0e4dbffddf60e87f99a52c47f3d149605d364e632e641f9cfdc8fc4e0383f331",
+  "5_dataset_model/V6_1_clean_final/feature_scaler.pkl": "d7f581eaf86b5cc9ed2367740c672e5c8a7c5f4833cc47840bf63998fcbc0893",
+  "6_dataset_model/best_iceberg_model_final.keras": "1a9d951c0c1620df62e1d02302fecc6cc00aa811e3c6dd0d4435cfaace08a546",
+  "6_dataset_model/cleaned_hourly_iceberg_dataset.csv": "856152c08be8537564946732fd8d1858d1556222f18a3b6e995827fd51f837ad",
+  "6_dataset_model/iceberg_trajectory_LSTM_final.keras": "af50281e59e488143cd3f13fc89f9aaf42064eba45ded61ba7dc9c6beba71b18",
+  "6_dataset_model/metadata_final.json": "278fb275230f7a19694584a36c62e1697194ea8ece360a1aee16199744345492",
+  "6_dataset_model/training_history_final.csv": "7f93e805ab573c5e90d104d6205b6ae844f9f419cd0b8788f48d74cc9c393e96",
+  "6_dataset_model/x_feature_scaler.pkl": "69a21c601a72a14b5878f4a4844134177f1d50bc6d4846062b28586450231996",
+  "6_dataset_model/y_delta_scaler.pkl": "ea388d97477ddc0c3247187a9b849b07cc23024b7d4db88e8c1695d70471ed6c",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_ExtraTrees_east.joblib": "c71fab8d560d1aa358b22a37921b2bbc92826e28bc64302877c29a95c6e0a53b",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_ExtraTrees_north.joblib": "4ad2f7c650079f6afcc0d212c6a0287c15f88b29e430f71565aee9e527030c5d",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_XGB_east.json": "b48cadffbdc720ad37f8f2f85e6a420fe870ff1666a311296abb3c03cccfc327",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_XGB_north.json": "ac7b523e86f4b39e692fee538058b77ffbcf6170a3554c832688fe7385e32f1e",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_config.json": "959a415a1f7c9ed5309c5c2178722f57531d21a2dba686ea6ba12c2db9da93e6",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_feature_importance.csv": "ef2c83dd02faeec51973a023c7a4cef8229cc942e7fdfc40c1fd5d4f2e78e201",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_horizon_analysis.csv": "ecf0caea38e7f4a94f5af045942620eaf39e901df00d25581caf2d6470183744",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_imputer.joblib": "9169147c76d1e029b3a0e9ff090fec3afcbe9f7c61b84f22cad8bb01db4add5c",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_metrics.json": "230f13e1e7c1b9799038d7768f446e513f15004d74a39460be1b63b2dfcb243e",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_test_predictions.csv": "dfeceaef910ce423dc207f343fc36a3c50015d9d65c32a409128decc7d9cc541",
+  "8_dataset_model/CRYOX_V9_FINAL/CRYOX_V9_validation_predictions.csv": "b7be0641c0bca16c136d100c24483dde7033cb81ff8983c2dd491de60e95fe2b"
+ },
+ "never_load": [
+  "5_dataset_model/V6_1_clean_final/feature_scaler.pkl"
+ ],
+ "packages": {
+  "4_dataset_model": "35335e9b01f6fdb9337f9998443804bbfcc32440dce28b19e5a13fc5420758e9",
+  "5_dataset_model": "ddf91b5d8484e6011ec2c42068c17008c054b8712eaf7fb9267213a066ee3879",
+  "6_dataset_model.zip": "07c3c27199aa5026fe826d05e5ab229db05b334f07e33d99ca1afc8b1b4bbe08",
+  "8_dataset_model": "3f7ffeec8b6a3a4c01fbc25939df8dabb0eb21f11075d07ed065538e745f1baa"
+ },
+ "pins": {
+  "m6_model_file": "6_dataset_model/best_iceberg_model_final.keras",
+  "note": "MUST be set explicitly to best_iceberg_model_final.keras or iceberg_trajectory_LSTM_final.keras (different hashes); startup fails while null"
+ },
+ "schema": "polar-nexus-manifest-1",
+ "m6_feature_provenance": {
+  "status": "UNRESOLVED",
+  "source_training_features": "supplied cleaned_hourly_iceberg_dataset.csv",
+  "original_feature_generation_pipeline": "NOT_ESTABLISHED",
+  "parity_tolerance": 1e-6,
+  "parity_status": "UNRESOLVED",
+  "reason": "supplied package does not contain sufficient feature-generation logic to reproduce training CSV from raw D4"
+ },
+ "m6_evaluation_provenance": {
+  "metadata_mean_error_km": 0.7752421498298645,
+  "independently_reproduced_mean_error_km": 1.4372915,
+  "status": "UNRESOLVED"
+ }
+}
