@@ -31,6 +31,6 @@ export function AntarcticMap({ children, center = [-64.8, -63.5], zoom = 5 }: An
   );
 }
 
-export function MapComponent() {
-  return <AntarcticMap />;
+export function MapComponent(props: AntarcticMapProps) {
+  return <AntarcticMap {...props} />;
 }
