@@ -96,8 +96,11 @@ async def lifespan(app: FastAPI):
     # Cleanup resources (if any)
     pass
 
+from polar_nexus.api.chatbot import router as chatbot_router
+
 app = FastAPI(title="POLAR NEXUS Operational API", version="v1", lifespan=lifespan)
 
+app.include_router(chatbot_router)
 @app.get("/api/v1/health")
 async def health():
     return {

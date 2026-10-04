@@ -4,6 +4,7 @@ import { planVoyage, fetchHazard } from '../api/client';
 import { Polyline, CircleMarker, Polygon, Marker } from 'react-leaflet';
 import { demoRouteAlternatives, demoRouteAlternativesFallback } from '../demo/prototypeData';
 import L from 'leaflet';
+import { useChatbotStore } from '../store/chatbotStore';
 
 const vesselIcon = L.divIcon({
   className: 'custom-div-icon',
@@ -61,6 +62,27 @@ export default function VoyagePlannerRoutex16() {
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [animProgress, setAnimProgress] = useState(0);
+
+  const updateChatContext = useChatbotStore(state => state.updateContext);
+
+  useEffect(() => {
+    let currentPos = null;
+    if (routes[selectedRouteIdx] && routes[selectedRouteIdx].geometry) {
+      currentPos = isAnimating || animProgress > 0 
+        ? getInterpolatedPoint(routes[selectedRouteIdx].geometry, animProgress)
+        : routes[selectedRouteIdx].geometry[0];
+    }
+    
+    updateChatContext({
+      iceberg_id: icebergId,
+      vessel_speed: parseFloat(vesselSpeed || '0'),
+      vessel_position: currentPos ? { lat: currentPos[0], lon: currentPos[1] } : undefined,
+      candidate_routes: routes,
+      selected_route: routes[selectedRouteIdx] || null,
+      hazard: hazard,
+      navigation_status: isAnimating ? 'Voyage in progress' : 'Planning phase'
+    });
+  }, [routes, selectedRouteIdx, hazard, icebergId, vesselSpeed, isAnimating, animProgress]);
 
   useEffect(() => {
     let frame: number;

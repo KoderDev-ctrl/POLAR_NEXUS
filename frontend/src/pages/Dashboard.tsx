@@ -34,7 +34,7 @@ export default function Dashboard() {
         <div className="w-full flex-grow min-h-[600px] rounded-xl overflow-hidden border border-surface-variant relative z-0 shadow-sm">
           <MapComponent center={[-63.5, -61.0]} zoom={6}>
             {/* Route */}
-            <Polyline positions={route} color="#0284C7" weight={3} />
+            <Polyline positions={route as any} color="#0284C7" weight={3} />
             
             {/* Vessel */}
             <Marker position={[vessel.lat, vessel.lon]} icon={vesselIcon}>
@@ -51,10 +51,10 @@ export default function Dashboard() {
             {icebergs.map(ice => (
               <React.Fragment key={ice.id}>
                 {/* Hazard Area */}
-                <Polygon positions={ice.polygon} color="orange" weight={1} fillColor="orange" fillOpacity={0.2} />
+                <Polygon positions={ice.polygon as any} color="orange" weight={1} fillColor="orange" fillOpacity={0.2} />
                 
                 {/* Trajectory Line */}
-                <Polyline positions={ice.trajectory} color="orange" weight={2} dashArray="4 4" />
+                <Polyline positions={ice.trajectory as any} color="orange" weight={2} dashArray="4 4" />
                 
                 {/* Predicted Position */}
                 <CircleMarker center={[ice.predicted.lat, ice.predicted.lon]} color="white" fillColor="orange" fillOpacity={1} weight={1} radius={5}>

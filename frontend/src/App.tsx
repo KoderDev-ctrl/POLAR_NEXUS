@@ -38,6 +38,8 @@ function Navigation() {
   );
 }
 
+import { ChatbotPanel } from './components/ChatbotPanel';
+
 function App() {
   return (
     <BrowserRouter>
@@ -51,6 +53,7 @@ function App() {
           <Route path="/sea-ice" element={<SeaIce />} />
         </Routes>
       </div>
+      <ChatbotPanel />
     </BrowserRouter>
   );
 }
