@@ -137,6 +137,64 @@ async def status():
         }
     }
 
+@app.get("/api/v1/icebergs")
+async def list_icebergs():
+    if state.d4_df is None:
+        return {"icebergs": []}
+    
+    # Sort to get latest observation per iceberg
+    df = state.d4_df.sort_values("datetime_utc", ascending=False).drop_duplicates("iceberg_id")
+    
+    # Mix in demo data if we have too few, or just return them
+    results = []
+    for _, row in df.iterrows():
+        results.append({
+            "id": row["iceberg_id"],
+            "latitude": float(row["latitude"]),
+            "longitude": float(row["longitude"]),
+            "observedAt": row["datetime_utc"].isoformat() if hasattr(row["datetime_utc"], "isoformat") else str(row["datetime_utc"]),
+            "source": row.get("source_sensor", "D4_Dataset"),
+            "status": "Observed"
+        })
+        
+    return {"icebergs": results}
+
+@app.get("/api/v1/icebergs/{iceberg_id}/trajectory")
+async def get_iceberg_trajectory(iceberg_id: str):
+    if state.d4_df is None:
+        raise HTTPException(status_code=404, detail="Dataset not loaded")
+        
+    df = state.d4_df[state.d4_df["iceberg_id"] == iceberg_id].sort_values("datetime_utc")
+    if df.empty:
+        raise HTTPException(status_code=404, detail="Iceberg not found")
+        
+    points = []
+    for _, row in df.iterrows():
+        points.append({
+            "latitude": float(row["latitude"]),
+            "longitude": float(row["longitude"]),
+            "observedAt": row["datetime_utc"].isoformat() if hasattr(row["datetime_utc"], "isoformat") else str(row["datetime_utc"])
+        })
+        
+    # Get hazard info which contains prediction
+    watermark = datetime(2025, 12, 31, 23, tzinfo=timezone.utc)
+    now = datetime(2025, 12, 31, 12, tzinfo=timezone.utc)
+    try:
+        assessment = await assess_iceberg(
+            iceberg_id, state.d4_df, watermark, now, state.cfg, state.adapters, state.m6_limits, mode="operational",
+            cache_check=cache_check, cache_save=cache_save, model_hashes=state.model_hashes
+        )
+    except Exception as e:
+        assessment = {"status": "ERROR"}
+        
+        
+    return {
+        "id": iceberg_id,
+        "historical": points,
+        "hazard_assessment": {k: v for k, v in assessment.items() if k not in ["route_hazard", "sic"]} if assessment.get("status") != "INSUFFICIENT_DATA" else None,
+        "status": assessment.get("status")
+    }
+
 @app.get("/api/v1/models")
 async def models():
     return {

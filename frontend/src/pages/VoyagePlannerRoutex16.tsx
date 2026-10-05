@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapComponent } from '../components/MapComponent';
-import { planVoyage, fetchHazard } from '../api/client';
+import { planVoyage, fetchHazard, fetchIcebergs } from '../api/client';
 import { Polyline, CircleMarker, Polygon, Marker } from 'react-leaflet';
 import { demoRouteAlternatives, demoRouteAlternativesFallback } from '../demo/prototypeData';
 import L from 'leaflet';
@@ -59,6 +59,43 @@ export default function VoyagePlannerRoutex16() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hazard, setHazard] = useState<any>(null);
+
+  const [icebergsLoading, setIcebergsLoading] = useState(true);
+  const [icebergs, setIcebergs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadIcebergs = async () => {
+      try {
+        const res = await fetchIcebergs();
+        if (res && res.icebergs) {
+          setIcebergs(res.icebergs);
+        }
+      } catch (err) {
+        import('../demo/prototypeData').then((m: any) => {
+          if (m.demoIcebergsFallback) {
+             setIcebergs(m.demoIcebergsFallback);
+          } else {
+             const fakeIcebergs = Array.from({length: 30}).map((_, i) => ({
+               id: `synthetic_${i}`,
+               latitude: -64.5 + (Math.random() * 4 - 2),
+               longitude: -63.2 + (Math.random() * 8 - 4),
+               observedAt: new Date().toISOString(),
+               source: 'DEMO/REPLAY',
+               status: 'Observed'
+             }));
+             fakeIcebergs.push({
+               id: 'a23a', latitude: -64.5, longitude: -63.2, observedAt: new Date().toISOString(), source: 'DEMO/REPLAY', status: 'Observed'
+             });
+             setIcebergs(fakeIcebergs);
+          }
+        }).catch(() => {});
+      } finally {
+        setIcebergsLoading(false);
+      }
+    };
+    loadIcebergs();
+  }, []);
+
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [animProgress, setAnimProgress] = useState(0);
@@ -197,7 +234,27 @@ export default function VoyagePlannerRoutex16() {
           </div>
           <div className="flex flex-col space-y-2">
             <label className="font-label-caps text-[10px] uppercase text-secondary">Iceberg ID (Optional)</label>
-            <input type="text" value={icebergId} onChange={e => setIcebergId(e.target.value)} className="bg-surface-container-low border border-surface-variant rounded p-2.5 font-telemetry-sm text-primary text-sm focus:outline-none focus:border-primary" />
+            <div className="relative">
+              <select 
+                value={icebergId} 
+                onChange={e => setIcebergId(e.target.value)} 
+                className="w-full bg-surface-container-low border border-surface-variant rounded p-2.5 font-telemetry-sm text-primary text-sm focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                disabled={icebergsLoading}
+              >
+                {icebergsLoading && <option value="a23a">Loading icebergs...</option>}
+                {!icebergsLoading && (
+                  <>
+                    <option value="">-- None --</option>
+                    {icebergs.map(ice => (
+                      <option key={ice.id} value={ice.id}>Iceberg {ice.id.toUpperCase()}</option>
+                    ))}
+                  </>
+                )}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-secondary">
+                <span className="material-symbols-outlined text-[16px]">expand_more</span>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -24,6 +24,18 @@ export async function fetchHazard(icebergId: string, mode = 'operational') {
   return res.json();
 }
 
+export async function fetchIcebergs() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/icebergs`);
+  if (!res.ok) throw new Error('Failed to fetch icebergs');
+  return res.json();
+}
+
+export async function fetchIcebergTrajectory(icebergId: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/icebergs/${icebergId}/trajectory`);
+  if (!res.ok) throw new Error('Failed to fetch iceberg trajectory');
+  return res.json();
+}
+
 export interface VoyagePlanRequest {
   origin: number[];
   destination: number[];
