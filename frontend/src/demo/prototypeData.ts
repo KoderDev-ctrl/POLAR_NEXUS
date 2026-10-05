@@ -106,13 +106,6 @@ export const demoDashboardMapData = {
       predicted: { lat: -64.0, lon: -62.0 },
       trajectory: [[-64.2, -62.5], [-64.1, -62.2], [-64.0, -62.0]],
       polygon: [[-64.2, -62.6], [-63.9, -61.9], [-64.3, -62.1]]
-    },
-    {
-      id: "D28",
-      current: { lat: -65.5, lon: -60.0 },
-      predicted: { lat: -65.1, lon: -59.5 },
-      trajectory: [[-65.5, -60.0], [-65.3, -59.8], [-65.1, -59.5]],
-      polygon: [[-65.6, -60.2], [-65.0, -59.4], [-65.4, -59.3]]
     }
   ],
   route: [
@@ -121,4 +114,49 @@ export const demoDashboardMapData = {
     [-63.5, -61.5],
     [-64.77, -64.05]
   ]
+};
+
+const WATER_SAFE_COORDS = [
+  [-61.0, -59.0], [-60.5, -57.5], [-61.8, -57.0], [-62.5, -59.5], 
+  [-63.0, -58.0], [-64.0, -54.0], [-65.0, -55.0], [-66.0, -53.0], 
+  [-64.5, -62.5], [-65.2, -64.0], [-66.0, -66.0], [-67.0, -69.0], 
+  [-68.0, -73.0], [-69.0, -75.0], [-61.2, -55.0], [-62.8, -60.8],
+  [-63.5, -61.2], [-64.2, -56.5], [-65.8, -58.2], [-67.5, -71.0]
+];
+
+export const demoIcebergsFallback = WATER_SAFE_COORDS.map((coord, i) => {
+  return {
+    id: `demo_iceberg_${i+1}`,
+    latitude: coord[0],
+    longitude: coord[1],
+    observedAt: new Date().toISOString(),
+    source: 'DEMO/REPLAY',
+    status: 'REPLAY'
+  };
+});
+
+export const getDemoHazardFallback = (id: string, lat: number, lon: number) => {
+  const seed = id.charCodeAt(id.length - 1);
+  const dLat = (seed % 5 + 1) * 0.02 * (seed % 2 === 0 ? 1 : -1);
+  const dLon = (seed % 7 + 1) * 0.03 * (seed % 3 === 0 ? 1 : -1);
+  
+  const p4 = { lat: lat, lon: lon };
+  const pKin = { lat: lat + dLat, lon: lon + dLon };
+  const p6 = { lat: lat + dLat * 2.2, lon: lon + dLon * 2.5 };
+  
+  return {
+    status: "SUCCESS",
+    points: [
+      { role: "P4", lat: p4.lat, lon: p4.lon, horizon_h: 0, source: "DEMO/REPLAY" },
+      { role: "P_kin24", lat: pKin.lat, lon: pKin.lon, horizon_h: 24, source: "DEMO/REPLAY" },
+      { role: "P6", lat: p6.lat, lon: p6.lon, horizon_h: 72, source: "DEMO/REPLAY" }
+    ],
+    advisories: [],
+    envelope: [
+      [p4.lat - Math.abs(dLat), p4.lon - Math.abs(dLon)],
+      [p4.lat + Math.abs(dLat), p4.lon - Math.abs(dLon)],
+      [p6.lat + Math.abs(dLat)*1.5, p6.lon + Math.abs(dLon)*1.5],
+      [p6.lat - Math.abs(dLat)*1.5, p6.lon + Math.abs(dLon)*1.5]
+    ]
+  };
 };

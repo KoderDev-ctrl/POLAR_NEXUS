@@ -73,20 +73,7 @@ export default function VoyagePlannerRoutex16() {
       } catch (err) {
         import('../demo/prototypeData').then((m: any) => {
           if (m.demoIcebergsFallback) {
-             setIcebergs(m.demoIcebergsFallback);
-          } else {
-             const fakeIcebergs = Array.from({length: 30}).map((_, i) => ({
-               id: `synthetic_${i}`,
-               latitude: -64.5 + (Math.random() * 4 - 2),
-               longitude: -63.2 + (Math.random() * 8 - 4),
-               observedAt: new Date().toISOString(),
-               source: 'DEMO/REPLAY',
-               status: 'Observed'
-             }));
-             fakeIcebergs.push({
-               id: 'a23a', latitude: -64.5, longitude: -63.2, observedAt: new Date().toISOString(), source: 'DEMO/REPLAY', status: 'Observed'
-             });
-             setIcebergs(fakeIcebergs);
+             setIcebergs(m.demoIcebergsFallback || []);
           }
         }).catch(() => {});
       } finally {
@@ -360,15 +347,32 @@ export default function VoyagePlannerRoutex16() {
                   </>
                 )}
                 
+                {/* All Icebergs Background Layer */}
+                {!icebergsLoading && icebergs.map(ice => (
+                  <CircleMarker
+                    key={ice.id}
+                    center={[ice.latitude, ice.longitude]}
+                    radius={ice.id === icebergId ? 5 : 3}
+                    color={ice.id === icebergId ? '#ef4444' : '#1d4ed8'}
+                    fillColor={ice.id === icebergId ? '#ef4444' : '#3b82f6'}
+                    fillOpacity={ice.id === icebergId ? 1 : 0.4}
+                    weight={ice.id === icebergId ? 2 : 1}
+                    eventHandlers={{
+                      click: () => setIcebergId(ice.id)
+                    }}
+                    className="cursor-pointer"
+                  />
+                ))}
+
                 {/* Hazard Visualizations */}
                 {hazard && hazard.envelope && hazard.envelope.length > 0 && (
-                  <Polygon positions={hazard.envelope} color="orange" weight={1} fillColor="orange" fillOpacity={0.2} />
+                  <Polygon positions={hazard.envelope} color="#eab308" weight={2} fillColor="#eab308" fillOpacity={0.2} />
                 )}
                 {hazard && hazard.points && hazard.points.length > 1 && (
-                  <Polyline positions={hazard.points.map((p: any) => [p.lat, p.lon])} color="orange" weight={3} />
+                  <Polyline positions={hazard.points.map((p: any) => [p.lat, p.lon])} color="#ef4444" weight={3} />
                 )}
                 {hazard && hazard.points?.map((pt: any, i: number) => (
-                  <CircleMarker key={pt.role} center={[pt.lat, pt.lon]} color={i === 0 ? 'red' : 'orange'} fillColor={i === 0 ? 'red' : 'orange'} fillOpacity={1} radius={5} />
+                  <CircleMarker key={pt.role} center={[pt.lat, pt.lon]} color="#ef4444" fillColor="#ef4444" fillOpacity={1} radius={4} />
                 ))}
 
                 {/* Vessel Marker */}

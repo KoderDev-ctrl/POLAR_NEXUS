@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapComponent } from '../components/MapComponent';
 import { fetchIcebergs, fetchIcebergTrajectory } from '../api/client';
-import { CircleMarker, Polyline, Polygon, useMap } from 'react-leaflet';
+import { CircleMarker, Polyline, Polygon, useMap, Tooltip } from 'react-leaflet';
 
 // Component to handle auto-panning the map when an iceberg is selected
 function MapController({ selectedCoords }: { selectedCoords: [number, number] | null }) {
@@ -38,20 +38,7 @@ export default function IcebergExplorerCryox() {
         import('../demo/prototypeData').then((m: any) => {
           if (m.demoIcebergsFallback) {
              setIcebergs(m.demoIcebergsFallback);
-          } else {
-             // Generate synthetic fallback to ensure many icebergs are visible
-             const fakeIcebergs = Array.from({length: 30}).map((_, i) => ({
-               id: `synthetic_${i}`,
-               latitude: -64.5 + (Math.random() * 4 - 2),
-               longitude: -63.2 + (Math.random() * 8 - 4),
-               observedAt: new Date().toISOString(),
-               source: 'DEMO/REPLAY',
-               status: 'Observed'
-             }));
-             fakeIcebergs.push({
-               id: 'a23a', latitude: -64.5, longitude: -63.2, observedAt: new Date().toISOString(), source: 'DEMO/REPLAY', status: 'Observed'
-             });
-             setIcebergs(fakeIcebergs);
+             setIcebergs(m.demoIcebergsFallback || []);
           }
         }).catch(() => setError("Failed to load icebergs"));
       } finally {
@@ -76,14 +63,25 @@ export default function IcebergExplorerCryox() {
       } catch (err) {
         // Fallback demo hazard
         import('../demo/prototypeData').then(m => {
-          setTrajectoryData({
-            id: icebergId,
-            historical: [
-              { latitude: -65.0, longitude: -63.5, observedAt: '2025-12-30T12:00:00Z' },
-              { latitude: -64.8, longitude: -63.3, observedAt: '2025-12-31T00:00:00Z' }
-            ],
-            hazard_assessment: m.demoHazardFallback,
-            status: 'REPLAY'
+          setTrajectoryData((prev: any) => {
+            const selected = icebergs.find(i => i.id === icebergId);
+            if (selected && m.getDemoHazardFallback) {
+              return {
+                id: icebergId,
+                historical: [
+                  { latitude: selected.latitude - 0.05, longitude: selected.longitude - 0.05, observedAt: '2025-12-30T12:00:00Z' },
+                  { latitude: selected.latitude, longitude: selected.longitude, observedAt: '2025-12-31T00:00:00Z' }
+                ],
+                hazard_assessment: m.getDemoHazardFallback(icebergId, selected.latitude, selected.longitude),
+                status: 'REPLAY'
+              };
+            }
+            return {
+              id: icebergId,
+              historical: [],
+              hazard_assessment: m.demoHazardFallback,
+              status: 'REPLAY'
+            };
           });
         });
       } finally {
@@ -152,24 +150,33 @@ export default function IcebergExplorerCryox() {
                   
                   {/* Trajectory / Hazard for selected iceberg */}
                   {trajectoryData && trajectoryData.hazard_assessment && trajectoryData.hazard_assessment.envelope && (
-                    <Polygon positions={trajectoryData.hazard_assessment.envelope} color="orange" weight={1} fillColor="orange" fillOpacity={0.2} />
+                    <Polygon positions={trajectoryData.hazard_assessment.envelope} color="#eab308" weight={2} fillColor="#eab308" fillOpacity={0.2} />
                   )}
                   {trajectoryData && trajectoryData.historical && trajectoryData.historical.length > 1 && (
                     <Polyline positions={trajectoryData.historical.map((p: any) => [p.latitude, p.longitude])} color="#475569" weight={2} opacity={0.6} />
                   )}
                   {trajectoryData && trajectoryData.hazard_assessment && trajectoryData.hazard_assessment.points && (
-                    <Polyline positions={trajectoryData.hazard_assessment.points.map((p: any) => [p.lat, p.lon])} color="orange" weight={3} dashArray="5, 10" />
+                    <Polyline positions={trajectoryData.hazard_assessment.points.map((p: any) => [p.lat, p.lon])} color="#ef4444" weight={3} />
                   )}
                   {trajectoryData && trajectoryData.hazard_assessment && trajectoryData.hazard_assessment.points && (
                     trajectoryData.hazard_assessment.points.map((pt: any, i: number) => (
                       <CircleMarker 
                         key={`pred_${i}`}
                         center={[pt.lat, pt.lon]} 
-                        color={'orange'}
-                        fillColor={'orange'}
+                        color={'#ef4444'}
+                        fillColor={'#ef4444'}
                         fillOpacity={1}
-                        radius={6} 
-                      />
+                        radius={5} 
+                      >
+                        <Tooltip>
+                          <div className="font-telemetry-sm text-xs">
+                            <strong className="block text-primary">{pt.role}</strong>
+                            <span>Lat: {pt.lat?.toFixed(4)}°</span><br/>
+                            <span>Lon: {pt.lon?.toFixed(4)}°</span><br/>
+                            <span>Valid: +{pt.horizon_h}h</span>
+                          </div>
+                        </Tooltip>
+                      </CircleMarker>
                     ))
                   )}
 
@@ -200,10 +207,10 @@ export default function IcebergExplorerCryox() {
               <h4 className="font-label-caps text-label-caps uppercase text-secondary">Map Legend</h4>
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-blue-500"></span><span className="font-telemetry-xs text-secondary">Observed Iceberg</span></div>
-                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500 border border-red-600"></span><span className="font-telemetry-xs text-primary font-bold">Selected</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500 border border-red-600"></span><span className="font-telemetry-xs text-primary font-bold">Selected / Prediction Point</span></div>
                 <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-slate-600"></span><span className="font-telemetry-xs text-secondary">Historical Track</span></div>
-                <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-orange-500 border-dashed border-b-2"></span><span className="font-telemetry-xs text-secondary">Forecast</span></div>
-                <div className="flex items-center gap-1.5"><span className="w-4 h-4 bg-orange-500/20 border border-orange-500/50"></span><span className="font-telemetry-xs text-secondary">Exclusion Zone</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-red-500"></span><span className="font-telemetry-xs text-secondary">Prediction Trajectory</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-4 h-4 bg-yellow-500/20 border border-yellow-500/50"></span><span className="font-telemetry-xs text-secondary">Hazard Envelope</span></div>
               </div>
             </div>
           </div>
@@ -248,14 +255,58 @@ export default function IcebergExplorerCryox() {
                   </div>
                 ) : (
                   trajectoryData && trajectoryData.hazard_assessment && trajectoryData.hazard_assessment.points && (
-                    <div className="mt-4 flex flex-col space-y-3">
+                    <div className="mt-4 flex flex-col space-y-4">
                       <h4 className="font-label-caps text-[10px] uppercase text-secondary tracking-widest bg-surface-variant px-2 py-1 rounded-sm">Operational Models</h4>
-                      {trajectoryData.hazard_assessment.points.map((pt: any) => (
-                        <div key={pt.role} className="flex justify-between items-center text-xs">
-                          <span className="font-telemetry-sm font-bold text-primary">{pt.role}</span>
-                          <span className="font-telemetry-sm text-secondary bg-surface-variant px-1 rounded">+{pt.horizon_h}h</span>
+                      <div className="flex flex-col space-y-3">
+                        {trajectoryData.hazard_assessment.points.map((pt: any, idx: number) => (
+                          <div key={pt.role} className="flex flex-col text-xs border-b border-surface-variant/50 pb-2 last:border-0 last:pb-0">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-telemetry-sm font-bold text-primary">{pt.role}</span>
+                              <span className="font-telemetry-sm text-secondary">+{pt.horizon_h}h</span>
+                            </div>
+                            <span className="font-telemetry-sm text-secondary">{pt.lat?.toFixed(4)}°, {pt.lon?.toFixed(4)}°</span>
+                          </div>
+                        ))}
+                        {(() => {
+                          const p4 = trajectoryData.hazard_assessment.points.find((p:any) => p.role === 'P4');
+                          const pFinal = trajectoryData.hazard_assessment.points.find((p:any) => p.role === 'P6' || p.role === 'P_kin24');
+                          if (p4 && pFinal && p4 !== pFinal) {
+                            return (
+                              <div className="mt-2 bg-surface-variant/30 rounded p-2 text-[10px] font-telemetry-sm text-secondary">
+                                <span className="block font-bold text-primary mb-1">Current → Predicted</span>
+                                <div className="flex justify-between">
+                                  <span>Δ Lat: {(pFinal.lat - p4.lat).toFixed(4)}°</span>
+                                  <span>Δ Lon: {(pFinal.lon - p4.lon).toFixed(4)}°</span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                      <div className="pt-2">
+                        <div className="flex items-center text-xs text-secondary font-telemetry-sm mb-2">
+                          <span className="font-label-caps text-[10px] uppercase text-secondary tracking-widest w-full">Prediction</span>
                         </div>
-                      ))}
+                        <div className="flex items-center font-telemetry-sm text-[10px] text-primary">
+                          {trajectoryData.hazard_assessment.points.map((pt: any, idx: number) => (
+                            <React.Fragment key={`path_${pt.role}`}>
+                              <span>{pt.role}</span>
+                              {idx < trajectoryData.hazard_assessment.points.length - 1 && (
+                                <span className="mx-1 text-red-500">───</span>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="pt-2">
+                        <div className="flex items-center text-xs text-secondary font-telemetry-sm">
+                          <span className="font-label-caps text-[10px] uppercase text-secondary tracking-widest w-full mb-1">Hazard</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 font-telemetry-sm text-xs text-primary">
+                           <span className="w-2 h-2 rounded-full bg-yellow-500"></span> Operational envelope available
+                        </div>
+                      </div>
                     </div>
                   )
                 )}
